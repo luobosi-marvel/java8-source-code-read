@@ -42,6 +42,11 @@ import sun.misc.Unsafe;
  * An {@code int} array in which elements may be updated atomically.
  * See the {@link java.util.concurrent.atomic} package
  * specification for description of the properties of atomic
+ * 原子更新 Integer 类型的数组，我们发现，并没有使用 CAS 更新下标的值的方式更行，而是计算出每个数组值的
+ * 内存偏移量来更新每个值。
+ * 通过内存偏移量来 CAS 对应的值
+ * todo：这里需要思考一下？为什么要采用这种方式？
+ *
  * variables.
  * @since 1.5
  * @author Doug Lea
@@ -50,17 +55,25 @@ public class AtomicIntegerArray implements java.io.Serializable {
     private static final long serialVersionUID = 2862133569453604235L;
 
     private static final Unsafe unsafe = Unsafe.getUnsafe();
+    // 获取该类型的数组，在对象存储时，存放第一个元素的内存地址，相对于数组对象起始地址的内存偏移量。
+
     private static final int base = unsafe.arrayBaseOffset(int[].class);
     private static final int shift;
     private final int[] array;
-
     static {
+        // 获取该类型的数组中元素的大小，占用多少个字节
         int scale = unsafe.arrayIndexScale(int[].class);
         if ((scale & (scale - 1)) != 0)
             throw new Error("data type scale not a power of two");
         shift = 31 - Integer.numberOfLeadingZeros(scale);
     }
 
+    /**
+     * 检查并计算指定下标的内存偏移量
+     *
+     * @param i 数组中的索引
+     * @return 返回该索引在内存中的偏移量
+     */
     private long checkedByteOffset(int i) {
         if (i < 0 || i >= array.length)
             throw new IndexOutOfBoundsException("index " + i);
@@ -68,6 +81,12 @@ public class AtomicIntegerArray implements java.io.Serializable {
         return byteOffset(i);
     }
 
+    /**
+     * 计算指定索引的内存偏移量
+     *
+     * @param i 指定索引
+     * @return 返回指定索引的内存偏移量
+     */
     private static long byteOffset(int i) {
         return ((long) i << shift) + base;
     }
@@ -105,14 +124,21 @@ public class AtomicIntegerArray implements java.io.Serializable {
 
     /**
      * Gets the current value at position {@code i}.
+     * 获取指定位置的值
      *
-     * @param i the index
-     * @return the current value
+     * @param i the index           指定索引
+     * @return the current value    指定索引对应的当前值
      */
     public final int get(int i) {
         return getRaw(checkedByteOffset(i));
     }
 
+    /**
+     * 根据内存偏移量获取指定的值
+     *
+     * @param offset 内存偏移量
+     * @return 返回值
+     */
     private int getRaw(long offset) {
         return unsafe.getIntVolatile(array, offset);
     }
