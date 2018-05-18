@@ -43,6 +43,8 @@ import sun.misc.Unsafe;
  * {@code AtomicBoolean} is used in applications such as atomically
  * updated flags, and cannot be used as a replacement for a
  * {@link java.lang.Boolean}.
+ * 该类是通过 CAS 方法，更新一个 boolean 类型的值，原子操作
+ * 底层还是使用的是数值存储的
  *
  * @since 1.5
  * @author Doug Lea
@@ -51,10 +53,14 @@ public class AtomicBoolean implements java.io.Serializable {
     private static final long serialVersionUID = 4654671469794556979L;
     // setup to use Unsafe.compareAndSwapInt for updates
     private static final Unsafe unsafe = Unsafe.getUnsafe();
+    /**
+     * value 在内存中的偏移量
+     */
     private static final long valueOffset;
 
     static {
         try {
+            // 初始化 value 在内存中的偏移量
             valueOffset = unsafe.objectFieldOffset
                 (AtomicBoolean.class.getDeclaredField("value"));
         } catch (Exception ex) { throw new Error(ex); }
@@ -64,6 +70,7 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Creates a new {@code AtomicBoolean} with the given initial value.
+     * 还是将 boolean 类型的值转成 1、0 来存储
      *
      * @param initialValue the initial value
      */
@@ -89,9 +96,10 @@ public class AtomicBoolean implements java.io.Serializable {
     /**
      * Atomically sets the value to the given updated value
      * if the current value {@code ==} the expected value.
+     * 如果当前值和期望的值相等则将 value 设置成给定的要更新的值
      *
-     * @param expect the expected value
-     * @param update the new value
+     * @param expect the expected value   这个是期望值，其实也就相当于当前的版本号
+     * @param update the new value        新值
      * @return {@code true} if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
@@ -141,12 +149,15 @@ public class AtomicBoolean implements java.io.Serializable {
 
     /**
      * Atomically sets to the given value and returns the previous value.
+     * 设置给定的值，并返回原来的值
      *
      * @param newValue the new value
      * @return the previous value
      */
     public final boolean getAndSet(boolean newValue) {
         boolean prev;
+        // 还是使用循环语句，直到成功为止
+        // todo: 问题来了，如果一直不成功一直要循环，多消耗内存啊！
         do {
             prev = get();
         } while (!compareAndSet(prev, newValue));
