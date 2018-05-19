@@ -63,6 +63,10 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * compareAndSwap for longs. While the Unsafe.compareAndSwapLong
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
+     *
+     * 一个静态的Boolean值VM_SUPPORTS_LONG_CAS,调用一个 native方法VMSupportCS8()返回虚拟机是否支持Long类型的无锁CAS机制
+     *
+     * 在 AtomicLongFieldUpdater 这个类里面有用到这个参数
      */
     static final boolean VM_SUPPORTS_LONG_CAS = VMSupportsCS8();
 

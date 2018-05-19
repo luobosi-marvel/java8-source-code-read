@@ -64,6 +64,21 @@ import java.io.Serializable;
  * compareTo} because instances are expected to be mutated, and so are
  * not useful as collection keys.
  *
+ * 为什么LongAdder会比AtomicLong更高效了，没错，唯一会制约AtomicLong高效的原因是高并发，
+ * 高并发意味着CAS的失败几率更高， 重试次数更多，越多线程重试，CAS失败几率又越高，变成恶性循环，AtomicLong效率降低。
+ * 那怎么解决？
+ *
+ *  LongAdder给了我们一个非常容易想到的解决方案：
+ *  todo：减少并发，将单一value的更新压力分担到多个value中去，降低单个value的 “热度”，分段更新！！！
+ * 这样，线程数再多也会分担到多个value上去更新，只需要增加value就可以降低 value的 “热度”  AtomicLong中的 恶性循环不就解决了吗？
+ * cells 就是这个 “段” cell中的value 就是存放更新值的， 这样，当我需要总数时，把cells 中的value都累加一下不就可以了么！！
+ * 当然，聪明之处远远不仅仅这里，在看看add方法中的代码，casBase方法可不可以不要，直接分段更新,上来就计算 索引位置，然后更新value？
+ * 答案是不好，不是不行，因为，casBase操作等价于AtomicLong中的CAS操作，要知道，LongAdder这样的处理方式是有坏处的，分段操作必然带来空间上的浪费，
+ * 可以空间换时间，但是，能不换就不换，看空间时间都节约~！ 所以，casBase操作保证了在低并发时，不会立即进入分支做分段更新操作，因为低并发时，
+ * casBase操作基本都会成功，只有并发高到一定程度了，才会进入分支，
+ * 所以，Doug Lea对该类的说明是： 低并发时LongAdder和AtomicLong性能差不多，高并发时LongAdder更高效！
+ *
+ * 该类目的在于求和操作
  * @since 1.8
  * @author Doug Lea
  */
@@ -78,6 +93,7 @@ public class LongAdder extends Striped64 implements Serializable {
 
     /**
      * Adds the given value.
+     * 高并发的时候往 cell 数组里面添加数据，减少冲突，那么 获取 sum 的时候只需要将 cell 里面的数叠加即可
      *
      * @param x the value to add
      */
@@ -93,6 +109,8 @@ public class LongAdder extends Striped64 implements Serializable {
     }
 
     /**
+     * 这里的自增操作和 AtomicLong 里面的自增操作，高并发情况下，很明显是这里的高
+     *
      * Equivalent to {@code add(1)}.
      */
     public void increment() {

@@ -56,6 +56,7 @@ import java.io.Serializable;
  * methods such as {@code equals}, {@code hashCode} and {@code
  * compareTo} because instances are expected to be mutated, and so are
  * not useful as collection keys.
+ * 这个类的思想可以参照 LongAdder
  *
  * @since 1.8
  * @author Doug Lea
