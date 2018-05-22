@@ -74,6 +74,8 @@ import java.util.Spliterator;
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
+ * 用数组存储数据的阻塞队列，构造的时候要确定容量，一旦容量满了就不能扩容了
+ * 该类么有什么特别的，但是每个方法都要加锁
  *
  * @since 1.5
  * @author Doug Lea
@@ -127,6 +129,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Circularly decrement i.
+     *
      */
     final int dec(int i) {
         return ((i == 0) ? items.length : i) - 1;
@@ -134,6 +137,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Returns item at index i.
+     * 返回指定下标的值
      */
     @SuppressWarnings("unchecked")
     final E itemAt(int i) {
@@ -153,6 +157,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Inserts element at current put position, advances, and signals.
      * Call only when holding lock.
+     * 在 putIndex 添加一个元素，注意下标的
+     *
      */
     private void enqueue(E x) {
         // assert lock.getHoldCount() == 1;
@@ -162,6 +168,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         if (++putIndex == items.length)
             putIndex = 0;
         count++;
+        // 提醒消费线程去消费
         notEmpty.signal();
     }
 
@@ -179,6 +186,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         if (++takeIndex == items.length)
             takeIndex = 0;
         count--;
+        // 迭代器也要删除元素
         if (itrs != null)
             itrs.elementDequeued();
         notFull.signal();
