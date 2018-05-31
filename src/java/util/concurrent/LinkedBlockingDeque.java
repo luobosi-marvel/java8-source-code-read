@@ -70,6 +70,8 @@ import java.util.function.Consumer;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * todo：这个 LinkedBlockingDeque 用链表实现的双向阻塞队列也只用了一把锁
+ * 使用 takeCondition 和 putCondition 来提示何时 take put 元素
  * @since 1.6
  * @author  Doug Lea
  * @param <E> the type of elements held in this collection

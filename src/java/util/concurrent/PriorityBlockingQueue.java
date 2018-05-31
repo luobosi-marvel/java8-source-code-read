@@ -101,6 +101,8 @@ import sun.misc.SharedSecrets;
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
+ * todo：优先级阻塞队列，最重要的就是最大堆 最小堆之间的转换 默认初始容量是 11，不允许添加 null 元素
+ * 适合有优先级的任务，底层使用的还是数组存储
  *
  * @since 1.5
  * @author Doug Lea
@@ -158,6 +160,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     /**
      * The comparator, or null if priority queue uses elements'
      * natural ordering.
+     * 最大堆是最大元素在最上面，那么就涉及到一个比较的问题，那么可以自定义比较器用来比较元素
      */
     private transient Comparator<? super E> comparator;
 
@@ -168,11 +171,15 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Condition for blocking when empty
+     *
+     * 为空的时候用来充当阻塞条件
      */
     private final Condition notEmpty;
 
     /**
      * Spinlock for allocation, acquired via CAS.
+     *
+     * 使用自炫锁
      */
     private transient volatile int allocationSpinLock;
 
@@ -242,6 +249,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      *         queue's ordering
      * @throws NullPointerException if the specified collection or any
      *         of its elements are null
+     *
      */
     public PriorityBlockingQueue(Collection<? extends E> c) {
         this.lock = new ReentrantLock();
@@ -287,12 +295,16 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * @param oldCap the length of the array
      */
     private void tryGrow(Object[] array, int oldCap) {
+        // 这里要释放原来获取的锁，先扩容才可以再添加元素，
+        // todo：这里如果释放掉锁的话，很可能会有很多线程都来扩容，那现在应该怎们办呢？
         lock.unlock(); // must release and then re-acquire main lock
         Object[] newArray = null;
+        // 这里采用 cas 的操作来扩容
         if (allocationSpinLock == 0 &&
             UNSAFE.compareAndSwapInt(this, allocationSpinLockOffset,
                                      0, 1)) {
             try {
+                // todo：这里为啥要以 64 为标准？
                 int newCap = oldCap + ((oldCap < 64) ?
                                        (oldCap + 2) : // grow faster if small
                                        (oldCap >> 1));
@@ -302,14 +314,18 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                         throw new OutOfMemoryError();
                     newCap = MAX_ARRAY_SIZE;
                 }
+                // 这里还需要将 当前的 queue 和传值进来的 array 进行比较(可能有其他线程删除了元素)，要保证数据一致才能扩容，因为这里是没有加锁的
                 if (newCap > oldCap && queue == array)
                     newArray = new Object[newCap];
             } finally {
+                // 重新将值给位 1，以便后面线程来扩容
                 allocationSpinLock = 0;
             }
         }
+        // 如果 newArray == null 说明有其他线程正在这里扩容，因为我们发现上面的逻辑，如果有线程进行扩容的话，会将 allocationSpinLockOffset 置为 1
         if (newArray == null) // back off if another thread is allocating
             Thread.yield();
+        // 然后将原来的元素重新赋值到新的数组里面，那么该操作是需要重新加锁的
         lock.lock();
         if (newArray != null && queue == array) {
             queue = newArray;
@@ -322,21 +338,23 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      */
     private E dequeue() {
         int n = size - 1;
-        if (n < 0)
+        if (n < 0) {
             return null;
-        else {
-            Object[] array = queue;
-            E result = (E) array[0];
-            E x = (E) array[n];
-            array[n] = null;
-            Comparator<? super E> cmp = comparator;
-            if (cmp == null)
-                siftDownComparable(0, x, array, n);
-            else
-                siftDownUsingComparator(0, x, array, n, cmp);
-            size = n;
-            return result;
         }
+        Object[] array = queue;
+        E result = (E) array[0];
+        E x = (E) array[n];
+        array[n] = null;
+        Comparator<? super E> cmp = comparator;
+        // 重新调整堆结构
+        if (cmp == null)
+            // 没有比较器的时候
+            siftDownComparable(0, x, array, n);
+        else
+            // 有比较器的时候
+            siftDownUsingComparator(0, x, array, n, cmp);
+        size = n;
+        return result;
     }
 
     /**
@@ -482,6 +500,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         lock.lock();
         int n, cap;
         Object[] array;
+        // 是否需要扩容  如果元素个数要比容量还大的时候就要扩容了
         while ((n = size) >= (cap = (array = queue).length))
             tryGrow(array, cap);
         try {

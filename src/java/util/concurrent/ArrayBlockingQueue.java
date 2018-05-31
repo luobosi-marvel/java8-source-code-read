@@ -74,9 +74,9 @@ import java.util.Spliterator;
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
- * 用数组存储数据的阻塞队列，构造的时候要确定容量，一旦容量满了就不能扩容了
+ * 用数组存储数据的阻塞队列，构造的时候要确定容量（所以这个类是没有默认的初始容量，不涉及扩容操作），一旦容量满了就不能扩容了
  * 该类么有什么特别的，但是每个方法都要加锁
- *
+ * todo：ArrayBlockingQueue 是不允许添加 null 元素的，没有默认的初始容量，不涉及扩容操作
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
@@ -122,6 +122,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Shared state for currently active iterators, or null if there
      * are known not to be any.  Allows queue operations to update
      * iterator state.
+     *
+     * 允许对迭代器进行更新操作，这个是共享的迭代器
      */
     transient Itrs itrs = null;
 
@@ -130,6 +132,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Circularly decrement i.
      *
+     * 返回下一个元素的下标
      */
     final int dec(int i) {
         return ((i == 0) ? items.length : i) - 1;
@@ -158,7 +161,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Inserts element at current put position, advances, and signals.
      * Call only when holding lock.
      * 在 putIndex 添加一个元素，注意下标的
-     *
+     * todo: 注意这个方法和下面出队列的方法，这里为什么不需要将元素添加到迭代器中去？
      */
     private void enqueue(E x) {
         // assert lock.getHoldCount() == 1;
@@ -186,7 +189,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         if (++takeIndex == items.length)
             takeIndex = 0;
         count--;
-        // 迭代器也要删除元素
+        // todo: 迭代器也要删除元素? 为什么在集合中的迭代器使用的是 ArrayList.this.elementData
+        // todo: 因为 ArrayList 是现成不安全的，如果不并发操作是不会出现数据不一致的情况，但是这里并发操作那么就需要
+        // 使迭代器中的元素与 queue 中的元素保持一致
         if (itrs != null)
             itrs.elementDequeued();
         notFull.signal();
@@ -197,6 +202,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Deletes item at array index removeIndex.
      * Utility for remove(Object) and iterator.remove.
      * Call only when holding lock.
+     *
+     * 如果removeIndex 直接就是 takeIndex ，那么直接删除即可，如果不是那么就需要进行下标的移动了
      */
     void removeAt(final int removeIndex) {
         // assert lock.getHoldCount() == 1;
@@ -284,8 +291,11 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      */
     public ArrayBlockingQueue(int capacity, boolean fair,
                               Collection<? extends E> c) {
+        // todo：这里的构造方法为什么要加锁？
+        // new 一个对象并不是线程安全的，分为三步 1.
+        // 这里只是分配了数组的容量，并没有给数组赋值，为了防止其他线程可以使用该数组，那么需要加锁
         this(capacity, fair);
-
+        // 这里加锁只是为了保证可见性，并不是为了互斥
         final ReentrantLock lock = this.lock;
         lock.lock(); // Lock only for visibility, not mutual exclusion
         try {
@@ -310,6 +320,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * possible to do so immediately without exceeding the queue's capacity,
      * returning {@code true} upon success and throwing an
      * {@code IllegalStateException} if this queue is full.
+     * 该方法是会抛出异常的，如果队列满了则抛出 IllegalStateException 异常
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Collection#add})
@@ -369,6 +380,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Inserts the specified element at the tail of this queue, waiting
      * up to the specified wait time for space to become available if
      * the queue is full.
+     * 该方法是有时间限制的，超过时间则直接失败
      *
      * @throws InterruptedException {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
@@ -470,6 +482,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * an element will succeed by inspecting {@code remainingCapacity}
      * because it may be the case that another thread is about to
      * insert or remove an element.
+     *
+     * 返回队列的剩余容量
      */
     public int remainingCapacity() {
         final ReentrantLock lock = this.lock;
@@ -508,6 +522,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 final int putIndex = this.putIndex;
                 int i = takeIndex;
                 do {
+                    // 通过匹配元素，然后通过下标删除元素
                     if (o.equals(items[i])) {
                         removeAt(i);
                         return true;
@@ -691,6 +706,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 } while (i != putIndex);
                 takeIndex = putIndex;
                 count = 0;
+                // 这里还需要将迭代器清空
                 if (itrs != null)
                     itrs.queueIsEmpty();
                 for (; k > 0 && lock.hasWaiters(notFull); k--)
@@ -824,6 +840,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * Care must be taken to keep list sweeping methods from
      * reentrantly invoking another such method, causing subtle
      * corruption bugs.
+     *
+     *
+     * 我们发现集合中的迭代器如果并发操作的话会报 ConcurrentModificationException 这个错误
+     * 但是这里我们发现并没有
      */
     class Itrs {
 

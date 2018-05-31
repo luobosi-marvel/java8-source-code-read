@@ -72,6 +72,7 @@ import java.util.function.Consumer;
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
+ * todo: 这个使用链表实现的阻塞队列，链表大小受计数器的限制，所以这里使用了两把锁，一把用来插入数据，一把用来拿数据
  *
  * @since 1.5
  * @author Doug Lea
@@ -136,7 +137,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
     /** The capacity bound, or Integer.MAX_VALUE if none */
     private final int capacity;
 
-    /** Current number of elements */
+    /** Current number of elements 用来存储有多少个元素 */
     private final AtomicInteger count = new AtomicInteger();
 
     /**
@@ -166,6 +167,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
     /**
      * Signals a waiting take. Called only from put/offer (which do not
      * otherwise ordinarily lock takeLock.)
+     *
+     * 提醒线程可以 take 数据
      */
     private void signalNotEmpty() {
         final ReentrantLock takeLock = this.takeLock;
@@ -179,6 +182,8 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * Signals a waiting put. Called only from take/poll.
+     *
+     * 提醒线程可以 put 数据
      */
     private void signalNotFull() {
         final ReentrantLock putLock = this.putLock;
@@ -351,6 +356,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
             }
             enqueue(node);
             c = count.getAndIncrement();
+            // 提醒生产者生产数据
             if (c + 1 < capacity)
                 notFull.signal();
         } finally {
