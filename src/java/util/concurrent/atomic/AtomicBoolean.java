@@ -158,6 +158,7 @@ public class AtomicBoolean implements java.io.Serializable {
         boolean prev;
         // 还是使用循环语句，直到成功为止
         // todo: 问题来了，如果一直不成功一直要循环，多消耗内存啊！
+        // boolean 就两个值，更新成功概率很大
         do {
             prev = get();
         } while (!compareAndSet(prev, newValue));
