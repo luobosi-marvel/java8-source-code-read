@@ -427,6 +427,7 @@ class Socket implements java.io.Closeable {
         if (address == null)
             throw new NullPointerException();
 
+
         try {
             createImpl(stream);
             if (localAddr != null)
