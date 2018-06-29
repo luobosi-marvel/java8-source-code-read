@@ -86,6 +86,16 @@ import sun.misc.SharedSecrets;
  * Java Collections Framework</a>.
  *
  * 写时复制的数据结构，保存一个快照包。所有的读都是读这个快照包。写数据的时候需要加锁。
+ * todo：扩容，每次只扩容一个元素
+ * todo：问题来了，CopyOnWriteArrayList 为什么每次之扩容一个元素，为什么不像 ArrayList 扩容 1.5 倍？
+ *       我们知道，CopyOnWriteArrayList 有太多复制快照包的操作，如果扩容1.5 倍是很消耗内存空间的。没有意义，
+ *       而且使用迭代器的时候也是复制快照包给迭代器。
+ * todo：我们发现迭代器里面只有迭代操作，禁止了 set、remove、add 这些操作。为什么要禁止？
+ *       因为迭代器里面的只是一个快照包，所以对快照包进行 set、remove、add 是无意义的。
+ *
+ * addIfAbsent：该方法先判断元素是否存在，如果存在直接返回 false，如果不存在，那么先拿到一个快照包，
+ * 加锁后再拿到当前数组，判断两个数组是否相等，如果相等，直接在数组后面添加该元素即可，如果不相等。
+ * 就要判断该元素是否已经存在队列中了，如果存在返回 false
  *
  * @since 1.5
  * @author Doug Lea
@@ -613,6 +623,7 @@ public class CopyOnWriteArrayList<E>
      */
     public boolean addIfAbsent(E e) {
         Object[] snapshot = getArray();
+        // 如果该元素已经存在，则直接返回 false
         return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
             addIfAbsent(e, snapshot);
     }
@@ -623,20 +634,26 @@ public class CopyOnWriteArrayList<E>
      */
     private boolean addIfAbsent(E e, Object[] snapshot) {
         final ReentrantLock lock = this.lock;
+        // 加锁
         lock.lock();
         try {
+            // 拿到目前最新的数组
             Object[] current = getArray();
             int len = current.length;
+            // 如果快照包和最新数组不相等
             if (snapshot != current) {
                 // Optimize for lost race to another addXXX operation
                 int common = Math.min(snapshot.length, len);
                 for (int i = 0; i < common; i++)
+                    // 判断数组结构是否改变，该元素是否已经存在当前队列中
                     if (current[i] != snapshot[i] && eq(e, current[i]))
                         return false;
                 if (indexOf(e, current, common, len) >= 0)
                         return false;
             }
+            // 如果相等则需要将数组扩容
             Object[] newElements = Arrays.copyOf(current, len + 1);
+            // 然后将新元素添加到后面
             newElements[len] = e;
             setArray(newElements);
             return true;

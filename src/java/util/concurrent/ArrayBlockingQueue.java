@@ -191,7 +191,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             takeIndex = 0;
         count--;
         // todo: 迭代器也要删除元素? 为什么在集合中的迭代器使用的是 ArrayList.this.elementData
-        // todo: 因为 ArrayList 是现成不安全的，如果不并发操作是不会出现数据不一致的情况，但是这里并发操作那么就需要
+        // todo: 因为 ArrayList 是线程不安全的，如果不并发操作是不会出现数据不一致的情况，但是这里并发操作那么就需要
         // 使迭代器中的元素与 queue 中的元素保持一致
         if (itrs != null)
             itrs.elementDequeued();
