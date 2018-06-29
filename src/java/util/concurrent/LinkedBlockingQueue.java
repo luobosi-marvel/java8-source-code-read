@@ -72,7 +72,8 @@ import java.util.function.Consumer;
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
- * todo: 这个使用链表实现的阻塞队列，链表大小受计数器的限制，所以这里使用了两把锁，一把用来插入数据，一把用来拿数据
+ * todo: 这个使用链表实现的阻塞队列，链表大小受计数器的限制，所以这里使用了两把锁，一把用来插入数据，一把用来取数据
+ * todo：LinkedBlockingQueue 在构造的时候如果指定大小，则按指定大小来存储元素，并不会自动扩容，如果不指定元素，最大值 Integer.MAX_VALUE
  *
  * @since 1.5
  * @author Doug Lea
@@ -382,6 +383,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
         long nanos = unit.toNanos(timeout);
         int c = -1;
         final ReentrantLock putLock = this.putLock;
+        //
         final AtomicInteger count = this.count;
         putLock.lockInterruptibly();
         try {
