@@ -92,7 +92,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
      * signalled.  So waiting threads must be prepared to acquire
      * and lose leadership while waiting.
      *
-     * 这里使用了一个领导者模式，任何时刻都只有一个领导者
+     * todo: 这里使用了一个领导者模式，任何时刻都只有一个领导者
      */
     private Thread leader = null;
 
