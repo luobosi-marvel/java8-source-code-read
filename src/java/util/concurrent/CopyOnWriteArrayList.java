@@ -85,6 +85,8 @@ import sun.misc.SharedSecrets;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * 写时复制的数据结构，保存一个快照包。所有的读都是读这个快照包。写数据的时候需要加锁。
+ *
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
@@ -990,7 +992,7 @@ public class CopyOnWriteArrayList<E>
 
         // Read in array length and allocate array
         int len = s.readInt();
-        SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, len);
+        // SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, len);
         Object[] elements = new Object[len];
 
         // Read in all elements in the proper order.

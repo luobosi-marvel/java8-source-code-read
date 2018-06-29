@@ -77,6 +77,7 @@ import java.util.Spliterator;
  * 用数组存储数据的阻塞队列，构造的时候要确定容量（所以这个类是没有默认的初始容量，不涉及扩容操作），一旦容量满了就不能扩容了
  * 该类么有什么特别的，但是每个方法都要加锁
  * todo：ArrayBlockingQueue 是不允许添加 null 元素的，没有默认的初始容量，不涉及扩容操作
+ * todo: 如何保证数组里面的元素和迭代器中的元素保持一致
  * @since 1.5
  * @author Doug Lea
  * @param <E> the type of elements held in this collection

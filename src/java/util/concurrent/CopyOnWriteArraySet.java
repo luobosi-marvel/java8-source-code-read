@@ -88,6 +88,8 @@ import java.util.function.Consumer;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * 写时复制set 集合，线程安全的set 集合，底层使用的是 CopyOnWriteArrayList 存储元素
+ * 利用 CopyOnWriteArrayList 中的 addIfAbsent 方法来防止重复添加元素
  * @see CopyOnWriteArrayList
  * @since 1.5
  * @author Doug Lea
