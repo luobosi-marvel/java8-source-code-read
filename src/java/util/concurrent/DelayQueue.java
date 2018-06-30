@@ -63,6 +63,10 @@ import java.util.*;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  * todo：延迟队列，添加的元素一定要是 Delayed 的子类才行
+ * 底层结构使用的 PriorityQueue 存储元素，只是多了一步超时判断而已
+ * todo：问题来了，如果多个线程同时等一个元素超时，怎么办？
+ * 解答：采用 领导者模式，只有一个 leader 在死循环里面等待超时的元素，其他线程
+ * 发现 leader != null 则直接等待
  *
  * @since 1.5
  * @author Doug Lea
@@ -414,6 +418,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
      * Always returns {@code Integer.MAX_VALUE} because
      * a {@code DelayQueue} is not capacity constrained.
      *
+     * todo：DelayQueue remainingCapacity 永远返回 Integer.MAX_VALUE
      * @return {@code Integer.MAX_VALUE}
      */
     public int remainingCapacity() {
