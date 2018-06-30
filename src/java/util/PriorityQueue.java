@@ -784,8 +784,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
         // Read in (and discard) array length
         s.readInt();
-
-        SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, size);
+        // todo: SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, size); 怎么报编译错误了
+        // SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, size);
         queue = new Object[size];
 
         // Read in all elements.
