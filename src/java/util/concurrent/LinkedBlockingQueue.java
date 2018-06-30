@@ -351,6 +351,11 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
              * out by lock), and we (or some other waiting put) are
              * signalled if it ever changes from capacity. Similarly
              * for all other uses of count in other wait guards.
+             * todo：这里并没有对 capacity 做并发限制，但是由于写操作加锁了
+             * 所以别的写线程是不能对 capacity 做加法操作的
+             *
+             * 但是读线程可以取走元素，那么现在 capacity 可能会减少，但是并不影响。
+             * 所以没有关系
              */
             while (count.get() == capacity) {
                 notFull.await();
