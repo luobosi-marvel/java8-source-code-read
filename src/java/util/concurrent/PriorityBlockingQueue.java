@@ -290,6 +290,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * (but normally expand by about 50%), giving up (allowing retry)
      * on contention (which we expect to be rare). Call only while
      * holding lock.
+     * todo：这里扩容操作使用 CAS 保证只有一个线程在进行扩容操作
      *
      * @param array the heap array
      * @param oldCap the length of the array
@@ -297,9 +298,10 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
     private void tryGrow(Object[] array, int oldCap) {
         // 这里要释放原来获取的锁，先扩容才可以再添加元素，
         // todo：这里如果释放掉锁的话，很可能会有很多线程都来扩容，那现在应该怎们办呢？
+        // 解答：使用 CAS 操作，只让一个线程进行扩容操作
         lock.unlock(); // must release and then re-acquire main lock
         Object[] newArray = null;
-        // 这里采用 cas 的操作来扩容
+        // todo：这里采用 cas 的操作来扩容, 使用 CAS 是为了保证同一时刻只有一个线程在做扩容操作
         if (allocationSpinLock == 0 &&
             UNSAFE.compareAndSwapInt(this, allocationSpinLockOffset,
                                      0, 1)) {
@@ -500,7 +502,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         lock.lock();
         int n, cap;
         Object[] array;
-        // 是否需要扩容  如果元素个数要比容量还大的时候就要扩容了
+        // todo: 是否需要扩容  如果元素个数要比容量还大的时候就要扩容了
         while ((n = size) >= (cap = (array = queue).length))
             tryGrow(array, cap);
         try {
@@ -624,6 +626,8 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
      * Always returns {@code Integer.MAX_VALUE} because
      * a {@code PriorityBlockingQueue} is not capacity constrained.
      * @return {@code Integer.MAX_VALUE} always
+     *
+     * todo: PriorityBlockingQueue remainingCapacity 永远返回 Integer.MAX_VALUE
      */
     public int remainingCapacity() {
         return Integer.MAX_VALUE;
@@ -961,7 +965,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         try {
             s.defaultReadObject();
             int sz = q.size();
-            SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, sz);
+            // SharedSecrets.getJavaOISAccess().checkArray(s, Object[].class, sz);
             this.queue = new Object[sz];
             comparator = q.comparator();
             addAll(q);
