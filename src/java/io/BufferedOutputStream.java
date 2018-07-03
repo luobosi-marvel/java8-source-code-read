@@ -31,6 +31,7 @@ package java.io;
  * output stream without necessarily causing a call to the underlying
  * system for each byte written.
  *
+ * todo: BufferedOutputStream 是一个具体装饰器，面向缓冲区的字节输出流，可以装饰 OutputStream 流
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */

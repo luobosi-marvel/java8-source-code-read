@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * reread before new bytes are  taken from
  * the contained input stream.
  *
+ * todo: BufferedInputStream 该流是面向缓冲区的, 只是对 InputStream 的一个具体装饰
  * @author  Arthur van Hoff
  * @since   JDK1.0
  */
@@ -226,6 +227,7 @@ class BufferedInputStream extends FilterInputStream {
             } else if (buffer.length >= MAX_BUFFER_SIZE) {
                 throw new OutOfMemoryError("Required array size too large");
             } else {            /* grow buffer */
+                // todo：BufferedInputStream 会扩容内部 buffer 数组
                 int nsz = (pos <= MAX_BUFFER_SIZE - pos) ?
                         pos * 2 : MAX_BUFFER_SIZE;
                 if (nsz > marklimit)
