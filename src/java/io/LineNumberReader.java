@@ -43,6 +43,7 @@ package java.io;
  * line feed ('\n'), a carriage return ('\r'), or a carriage return followed
  * immediately by a linefeed.
  *
+ * todo: 具体的字符装饰器，可以用来装饰 Reader 字符输入流
  * @author      Mark Reinhold
  * @since       JDK1.1
  */
