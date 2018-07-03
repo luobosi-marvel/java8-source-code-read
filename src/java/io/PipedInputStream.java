@@ -43,20 +43,32 @@ package java.io;
  * thread that was providing data bytes to the connected
  * piped output stream is no longer alive.
  *
+ * 可用于两个线程之间的通信
  * @author  James Gosling
  * @see     java.io.PipedOutputStream
  * @since   JDK1.0
  */
 public class PipedInputStream extends InputStream {
+    /**
+     *  true/false PipedOutputStream 流是否关闭
+     *  该字段是在 PipedInputStream-》receivedLast 设置的，但是是在 PipedOutputStream 的 close 方法里面调用的。
+     */
     boolean closedByWriter = false;
+    /** Reader 是否已经关闭，有可能 PipedInputStream 给了好几个对象共享，所以需要用 volatile 修饰 */
     volatile boolean closedByReader = false;
+    /** 标志输入输出是否已经连接上（该值是在 PipedOutputStream connect 方法里面设置的） */
     boolean connected = false;
 
         /* REMIND: identification of the read and write sides needs to be
            more sophisticated.  Either using thread groups (but what about
            pipes within a thread?) or using finalization (but it may be a
-           long time until the next GC). */
+           long time until the next GC).
+           读写双方需要进行识别更复杂。 要么使用线程组（但是呢
+      在一个线程内的管道？）或使用finalization（但它可能是一个
+      很长一段？时间，直到下一个GC）*/
+    /** 当前读线程 */
     Thread readSide;
+    /** 当前写线程 */
     Thread writeSide;
 
     private static final int DEFAULT_PIPE_SIZE = 1024;
@@ -81,6 +93,9 @@ public class PipedInputStream extends InputStream {
      * next byte of data will be stored when received from the connected
      * piped output stream. <code>in&lt;0</code> implies the buffer is empty,
      * <code>in==out</code> implies the buffer is full
+     *
+     * 循环缓冲区中位置的索引接收到的下一个字节的数据将被保存管道输出流。
+     *  in < 0 意味着缓冲区是空的， in == out  意味着缓冲区已满
      * @since   JDK1.1
      */
     protected int in = -1;
@@ -88,6 +103,8 @@ public class PipedInputStream extends InputStream {
     /**
      * The index of the position in the circular buffer at which the next
      * byte of data will be read by this piped input stream.
+     *
+     * 循环缓冲区中下一个位置的索引数据字节将被这个管道输入流读取。
      * @since   JDK1.1
      */
     protected int out = 0;
@@ -122,8 +139,8 @@ public class PipedInputStream extends InputStream {
      */
     public PipedInputStream(PipedOutputStream src, int pipeSize)
             throws IOException {
-         initPipe(pipeSize);
-         connect(src);
+        initPipe(pipeSize);
+        connect(src);
     }
 
     /**
@@ -155,10 +172,10 @@ public class PipedInputStream extends InputStream {
     }
 
     private void initPipe(int pipeSize) {
-         if (pipeSize <= 0) {
+        if (pipeSize <= 0) {
             throw new IllegalArgumentException("Pipe Size <= 0");
-         }
-         buffer = new byte[pipeSize];
+        }
+        buffer = new byte[pipeSize];
     }
 
     /**
@@ -183,14 +200,17 @@ public class PipedInputStream extends InputStream {
      *
      * @param      src   The piped output stream to connect to.
      * @exception  IOException  if an I/O error occurs.
+     *
+     * todo: 实际上PipedInputStream 的 connect 连接方法是调用 PipedOutputStream 的 connect 方法
      */
     public void connect(PipedOutputStream src) throws IOException {
         src.connect(this);
     }
 
     /**
-     * Receives a byte of data.  This method will block if no input is
-     * available.
+     * Receives a byte of data.  This method will block if no input is available.
+     * 接收一个字节的数据。 如果没有输入，此方法将被阻塞，该方法在 PipedOutputStream 的 write 方法中被调用
+     *
      * @param b the byte being received
      * @exception IOException If the pipe is <a href="#BROKEN"> <code>broken</code></a>,
      *          {@link #connect(java.io.PipedOutputStream) unconnected},
@@ -198,8 +218,11 @@ public class PipedInputStream extends InputStream {
      * @since     JDK1.1
      */
     protected synchronized void receive(int b) throws IOException {
+        // 检查目前接受状态
         checkStateForReceive();
+        // 该方法是 PipedOutputStream 调用 write 方法时才触发，所以当前线程是写线程
         writeSide = Thread.currentThread();
+        // 说明缓冲区满了
         if (in == out)
             awaitSpace();
         if (in < 0) {
@@ -263,11 +286,16 @@ public class PipedInputStream extends InputStream {
         }
     }
 
+    /**
+     * 缓冲区满了，要通知所有阻塞的 读线程来读取
+     *
+     * @throws IOException
+     */
     private void awaitSpace() throws IOException {
         while (in == out) {
             checkStateForReceive();
 
-            /* full: kick any waiting readers */
+            /* full: kick any waiting readers 通知所有等待的读者 */
             notifyAll();
             try {
                 wait(1000);
@@ -278,8 +306,10 @@ public class PipedInputStream extends InputStream {
     }
 
     /**
-     * Notifies all waiting threads that the last byte of data has been
-     * received.
+     * Notifies all waiting threads that the last byte of data has been received.
+     *
+     * 通知所有正在等待的线程数据的最后一个字节收到。
+     * 该方法由 PipeOutputStream 调用，在 它的 close 里面
      */
     synchronized void receivedLast() {
         closedByWriter = true;
@@ -301,12 +331,16 @@ public class PipedInputStream extends InputStream {
      *           or if an I/O error occurs.
      */
     public synchronized int read()  throws IOException {
+        // 说明管道输入输出流还没有连接上
         if (!connected) {
             throw new IOException("Pipe not connected");
+            // Reader 早已经关闭了
         } else if (closedByReader) {
             throw new IOException("Pipe closed");
+            // 如果 PipedOutputStream 所在的线程不为 null，且该线程已经 dead，
+            // 且PipedOutputStream 流没有关闭，且缓冲区是空的
         } else if (writeSide != null && !writeSide.isAlive()
-                   && !closedByWriter && (in < 0)) {
+                && !closedByWriter && (in < 0)) {
             throw new IOException("Write end dead");
         }
 
@@ -314,7 +348,7 @@ public class PipedInputStream extends InputStream {
         int trials = 2;
         while (in < 0) {
             if (closedByWriter) {
-                /* closed by writer, return EOF */
+                // closed by writer, return EOF
                 return -1;
             }
             if ((writeSide != null) && (!writeSide.isAlive()) && (--trials < 0)) {

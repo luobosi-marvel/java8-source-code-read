@@ -25,8 +25,6 @@
 
 package java.io;
 
-import java.io.*;
-
 /**
  * A piped output stream can be connected to a piped input stream
  * to create a communications pipe. The piped output stream is the
@@ -46,10 +44,10 @@ import java.io.*;
 public
 class PipedOutputStream extends OutputStream {
 
-        /* REMIND: identification of the read and write sides needs to be
-           more sophisticated.  Either using thread groups (but what about
-           pipes within a thread?) or using finalization (but it may be a
-           long time until the next GC). */
+    /* REMIND: identification of the read and write sides needs to be
+       more sophisticated.  Either using thread groups (but what about
+       pipes within a thread?) or using finalization (but it may be a
+       long time until the next GC). */
     private PipedInputStream sink;
 
     /**
@@ -94,11 +92,14 @@ class PipedOutputStream extends OutputStream {
      * @exception  IOException  if an I/O error occurs.
      */
     public synchronized void connect(PipedInputStream snk) throws IOException {
+        // 一个 PipedOutputStream 必须和一个 PipedInputStream 流关联上
         if (snk == null) {
             throw new NullPointerException();
         } else if (sink != null || snk.connected) {
+            // 该对象不能共享，只能连接一个 PipedInputStream 对象
             throw new IOException("Already connected");
         }
+        // 标识 PipedOutputStream 已经和其他 PipedInputStream 连接上了
         sink = snk;
         snk.in = -1;
         snk.out = 0;
@@ -141,7 +142,7 @@ class PipedOutputStream extends OutputStream {
         } else if (b == null) {
             throw new NullPointerException();
         } else if ((off < 0) || (off > b.length) || (len < 0) ||
-                   ((off + len) > b.length) || ((off + len) < 0)) {
+                ((off + len) > b.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         } else if (len == 0) {
             return;
@@ -153,6 +154,8 @@ class PipedOutputStream extends OutputStream {
      * Flushes this output stream and forces any buffered output bytes
      * to be written out.
      * This will notify any readers that bytes are waiting in the pipe.
+     *
+     * 强制刷新 PipedOutputStream 缓冲区。 通知任何在管道中等待的读者。
      *
      * @exception IOException if an I/O error occurs.
      */
