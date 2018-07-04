@@ -115,6 +115,7 @@ public final class Channels {
      * multiple concurrent threads.  Closing the stream will in turn cause the
      * channel to be closed.  </p>
      *
+     *
      * @param  ch
      *         The channel from which bytes will be read
      *

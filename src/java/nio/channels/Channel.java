@@ -60,7 +60,7 @@ public interface Channel extends Closeable {
      *
      * @return <tt>true</tt> if, and only if, this channel is open
      */
-    public boolean isOpen();
+    boolean isOpen();
 
     /**
      * Closes this channel.
@@ -79,6 +79,6 @@ public interface Channel extends Closeable {
      *
      * @throws  IOException  If an I/O error occurs
      */
-    public void close() throws IOException;
+    void close() throws IOException;
 
 }

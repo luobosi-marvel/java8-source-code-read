@@ -31,18 +31,17 @@ import java.nio.channels.spi.*;
 
 /**
  * A pair of channels that implements a unidirectional pipe.
- *
+ * <p>
  * <p> A pipe consists of a pair of channels: A writable {@link
  * Pipe.SinkChannel sink} channel and a readable {@link Pipe.SourceChannel source}
  * channel.  Once some bytes are written to the sink channel they can be read
  * from source channel in exactlyAthe order in which they were written.
- *
+ * <p>
  * <p> Whether or not a thread writing bytes to a pipe will block until another
  * thread reads those bytes, or some previously-written bytes, from the pipe is
  * system-dependent and therefore unspecified.  Many pipe implementations will
  * buffer up to a certain number of bytes between the sink and source channels,
  * but such buffering should not be assumed.  </p>
- *
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
@@ -57,14 +56,12 @@ public abstract class Pipe {
      * @since 1.4
      */
     public static abstract class SourceChannel
-        extends AbstractSelectableChannel
-        implements ReadableByteChannel, ScatteringByteChannel
-    {
+            extends AbstractSelectableChannel
+            implements ReadableByteChannel, ScatteringByteChannel {
         /**
          * Constructs a new instance of this class.
          *
-         * @param  provider
-         *         The selector provider
+         * @param provider The selector provider
          */
         protected SourceChannel(SelectorProvider provider) {
             super(provider);
@@ -73,11 +70,11 @@ public abstract class Pipe {
         /**
          * Returns an operation set identifying this channel's supported
          * operations.
-         *
+         * <p>
          * <p> Pipe-source channels only support reading, so this method
          * returns {@link SelectionKey#OP_READ}.  </p>
          *
-         * @return  The valid-operation set
+         * @return The valid-operation set
          */
         public final int validOps() {
             return SelectionKey.OP_READ;
@@ -91,14 +88,12 @@ public abstract class Pipe {
      * @since 1.4
      */
     public static abstract class SinkChannel
-        extends AbstractSelectableChannel
-        implements WritableByteChannel, GatheringByteChannel
-    {
+            extends AbstractSelectableChannel
+            implements WritableByteChannel, GatheringByteChannel {
         /**
          * Initializes a new instance of this class.
          *
-         * @param  provider
-         *         The selector provider
+         * @param provider The selector provider
          */
         protected SinkChannel(SelectorProvider provider) {
             super(provider);
@@ -107,11 +102,11 @@ public abstract class Pipe {
         /**
          * Returns an operation set identifying this channel's supported
          * operations.
-         *
+         * <p>
          * <p> Pipe-sink channels only support writing, so this method returns
          * {@link SelectionKey#OP_WRITE}.  </p>
          *
-         * @return  The valid-operation set
+         * @return The valid-operation set
          */
         public final int validOps() {
             return SelectionKey.OP_WRITE;
@@ -122,34 +117,33 @@ public abstract class Pipe {
     /**
      * Initializes a new instance of this class.
      */
-    protected Pipe() { }
+    protected Pipe() {
+    }
 
     /**
      * Returns this pipe's source channel.
      *
-     * @return  This pipe's source channel
+     * @return This pipe's source channel
      */
     public abstract SourceChannel source();
 
     /**
      * Returns this pipe's sink channel.
      *
-     * @return  This pipe's sink channel
+     * @return This pipe's sink channel
      */
     public abstract SinkChannel sink();
 
     /**
      * Opens a pipe.
-     *
+     * <p>
      * <p> The new pipe is created by invoking the {@link
      * java.nio.channels.spi.SelectorProvider#openPipe openPipe} method of the
      * system-wide default {@link java.nio.channels.spi.SelectorProvider}
      * object.  </p>
      *
-     * @return  A new pipe
-     *
-     * @throws  IOException
-     *          If an I/O error occurs
+     * @return A new pipe
+     * @throws IOException If an I/O error occurs
      */
     public static Pipe open() throws IOException {
         return SelectorProvider.provider().openPipe();
