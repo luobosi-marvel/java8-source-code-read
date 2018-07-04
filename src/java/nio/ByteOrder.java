@@ -28,6 +28,7 @@ package java.nio;
 
 /**
  * A typesafe enumeration for byte orders.
+ * 这里是大端序列和小端序列的标识
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
