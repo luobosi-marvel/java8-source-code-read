@@ -578,6 +578,7 @@ public class LinkedList<E>
 
     ////////////////  设计到下标操作，那么都需要遍历元素，在元素很多的情况下，这里是会影响性能的
 
+
     private void checkElementIndex(int index) {
         if (!isElementIndex(index))
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
@@ -592,10 +593,11 @@ public class LinkedList<E>
      * Returns the (non-null) Node at the specified element index.
      *
      * 返回指定下标下的节点元素
+     * todo： LinkedList 根据下标查找某个节点操作先判断下标是否小于 size >> 2 如果是，则从一半开始找
      */
     Node<E> node(int index) {
         // assert isElementIndex(index);
-
+        // 如果索引小于 size 的一半，则从一半开始找
         if (index < (size >> 1)) {
             Node<E> x = first;
             for (int i = 0; i < index; i++)
@@ -617,6 +619,7 @@ public class LinkedList<E>
      * More formally, returns the lowest index {@code i} such that
      * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>,
      * or -1 if there is no such index.
+     * todo：返回某个元素的下标值，如果没有找到则返回 -1
      *
      * @param o element to search for
      * @return the index of the first occurrence of the specified element in
