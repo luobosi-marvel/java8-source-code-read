@@ -593,11 +593,11 @@ public class LinkedList<E>
      * Returns the (non-null) Node at the specified element index.
      *
      * 返回指定下标下的节点元素
-     * todo： LinkedList 根据下标查找某个节点操作先判断下标是否小于 size >> 2 如果是，则从一半开始找
+     * todo： LinkedList 根据下标查找某个节点操作先判断下标是否小于 size >> 1 如果是，则从一半开始找
      */
     Node<E> node(int index) {
         // assert isElementIndex(index);
-        // 如果索引小于 size 的一半，则从一半开始找
+        // 如果索引小于 size 的一半，则从右半开始找
         if (index < (size >> 1)) {
             Node<E> x = first;
             for (int i = 0; i < index; i++)
