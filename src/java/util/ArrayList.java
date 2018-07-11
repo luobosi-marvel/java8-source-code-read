@@ -1006,6 +1006,19 @@ public class ArrayList<E> extends AbstractList<E>
      * those that change the size of this list, or otherwise perturb it in such
      * a fashion that iterations in progress may yield incorrect results.)
      *
+     * todo: subList 只是源数组的几个子集，对 subList 任何操作其实都是对原数组进行操作
+     *
+     * 如果你对一个 List 进行过 subList() 的操作之后,
+     *
+     * 1. 千万不要再对原 List 进行任何改动的操作(例如: 增删改), 查询和遍历倒是可以. 因为如果对原 List 进行了改动,
+     * 那么后续只要是涉及到子 List 的操作就一定会出问题. 而至于会出现什么问题呢? 具体来说就是:
+     * (1) 如果是对原 List 进行修改 (即: 调用 set() 方法) 而不是增删, 那么子 List 的元素也可能会被修改 (这种情况下不会抛出并发修改异常).
+     * (2) 如果是对原 List 进行增删, 那么此后只要操作了子 List , 就一定会抛出并发修改异常.
+     *
+     * 2. 千万不要直接对子 List 进行任何改动的操作(例如: 增删改), 但是查询和间接改动倒是可以. 不要对子 List 进行直接改动,
+     * 是因为如果在对子 List 进行直接改动之前, 原 List 已经被改动过, 那么此后在对子 List 进行直接改动的时候就会抛出并发修改异常.
+     *
+     * 如果这是源数组 modCount 有改变，那么 subList 就会报 ConcurrentModificationException
      * @throws IndexOutOfBoundsException {@inheritDoc}
      * @throws IllegalArgumentException  {@inheritDoc}
      */
@@ -1243,6 +1256,7 @@ public class ArrayList<E> extends AbstractList<E>
             return "Index: " + index + ", Size: " + this.size;
         }
 
+        // todo: 如果源 list 被修改过，那么再使用 subList 就会报 ConcurrentModificationException
         private void checkForComodification() {
             if (ArrayList.this.modCount != this.modCount)
                 throw new ConcurrentModificationException();
