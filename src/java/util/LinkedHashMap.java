@@ -218,7 +218,7 @@ public class LinkedHashMap<K,V>
 
     // internal utilities
 
-    // link at the end of list
+    // link at the end of list  在链表尾部添加一个元素
     private void linkNodeLast(LinkedHashMap.Entry<K,V> p) {
         LinkedHashMap.Entry<K,V> last = tail;
         tail = p;
@@ -296,6 +296,7 @@ public class LinkedHashMap<K,V>
 
     void afterNodeInsertion(boolean evict) { // possibly remove eldest
         LinkedHashMap.Entry<K,V> first;
+        // 如果 removeEldestEntry 判断最老的 entry 需要删除，那么就删除这个 entry
         if (evict && (first = head) != null && removeEldestEntry(first)) {
             K key = first.key;
             removeNode(hash(key), key, null, false, true);
@@ -304,6 +305,7 @@ public class LinkedHashMap<K,V>
 
     void afterNodeAccess(Node<K,V> e) { // move node to last
         LinkedHashMap.Entry<K,V> last;
+        // 如果是 access-order 模式其 e 不是链表尾节点(尾节点是最新的节点，迭代时最先被访问)就将 e 移动到链表最后面。
         if (accessOrder && (last = tail) != e) {
             LinkedHashMap.Entry<K,V> p =
                 (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
@@ -445,6 +447,8 @@ public class LinkedHashMap<K,V>
     }
 
     /**
+     * 获取 key 对应的值，如果该值不存在则返回指定的 defaultValue 默认值
+     *
      * {@inheritDoc}
      */
     public V getOrDefault(Object key, V defaultValue) {

@@ -1775,8 +1775,20 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         size = 0;
     }
 
-    // Callbacks to allow LinkedHashMap post-actions
+    // Callbacks to allow LinkedHashMap post-actions  钩子方法
+
+    /**
+     * 如果LinkedHashMap元素排序策略是按照访问顺序，就需要在每次元素被访问之后，调整顺序。
+     *
+     * @param p
+     */
     void afterNodeAccess(Node<K,V> p) { }
+
+    /**
+     * 调用removeEldestEntry()方法来实现额外的逻辑（比如删除最旧的元素等）。
+     *
+     * @param evict
+     */
     void afterNodeInsertion(boolean evict) { }
     void afterNodeRemoval(Node<K,V> p) { }
 
