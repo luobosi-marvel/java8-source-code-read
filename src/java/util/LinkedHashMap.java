@@ -212,6 +212,8 @@ public class LinkedHashMap<K,V>
      * The iteration ordering method for this linked hash map: <tt>true</tt>
      * for access-order, <tt>false</tt> for insertion-order.
      *
+     * 排序规则：true-访问顺序  false-插入顺序
+     *
      * @serial
      */
     final boolean accessOrder;
