@@ -220,6 +220,7 @@ public final class Collectors {
      * new {@code List}. There are no guarantees on the type, mutability,
      * serializability, or thread-safety of the {@code List} returned; if more
      * control over the returned {@code List} is required, use {@link #toCollection(Supplier)}.
+     * 将流转换成 list
      *
      * @param <T> the type of the input elements
      * @return a {@code Collector} which collects all the input elements into a
@@ -241,6 +242,7 @@ public final class Collectors {
      *
      * <p>This is an {@link Collector.Characteristics#UNORDERED unordered}
      * Collector.
+     * 将流转换成 set
      *
      * @param <T> the type of the input elements
      * @return a {@code Collector} which collects all the input elements into a
@@ -270,6 +272,8 @@ public final class Collectors {
     /**
      * Returns a {@code Collector} that concatenates the input elements,
      * separated by the specified delimiter, in encounter order.
+     *
+     * 将流中的元素通过指定的符号连接起来
      *
      * @param delimiter the delimiter to be used between each element
      * @return A {@code Collector} which concatenates CharSequence elements,
@@ -422,6 +426,7 @@ public final class Collectors {
      * <pre>{@code
      *     reducing(BinaryOperator.minBy(comparator))
      * }</pre>
+     * 获取流里面的最小值
      *
      * @param <T> the type of the input elements
      * @param comparator a {@code Comparator} for comparing elements
@@ -441,6 +446,7 @@ public final class Collectors {
      * <pre>{@code
      *     reducing(BinaryOperator.maxBy(comparator))
      * }</pre>
+     * 获取流里面的最大值
      *
      * @param <T> the type of the input elements
      * @param comparator a {@code Comparator} for comparing elements
@@ -455,6 +461,7 @@ public final class Collectors {
      * Returns a {@code Collector} that produces the sum of a integer-valued
      * function applied to the input elements.  If no elements are present,
      * the result is 0.
+     * 将int 类型流中的元素汇总
      *
      * @param <T> the type of the input elements
      * @param mapper a function extracting the property to be summed
@@ -473,6 +480,7 @@ public final class Collectors {
      * Returns a {@code Collector} that produces the sum of a long-valued
      * function applied to the input elements.  If no elements are present,
      * the result is 0.
+     * 将流中的元素汇总
      *
      * @param <T> the type of the input elements
      * @param mapper a function extracting the property to be summed
@@ -498,6 +506,7 @@ public final class Collectors {
      * absolute magnitude tend to yield more accurate results.  If any recorded
      * value is a {@code NaN} or the sum is at any point a {@code NaN} then the
      * sum will be {@code NaN}.
+     * 将流中的元素汇总
      *
      * @param <T> the type of the input elements
      * @param mapper a function extracting the property to be summed
@@ -612,6 +621,7 @@ public final class Collectors {
      * 2<sup>53</sup>. If the pipeline has more than 2<sup>53</sup>
      * values, the divisor in the average computation will saturate at
      * 2<sup>53</sup>, leading to additional numerical errors.
+     * 求平均值
      *
      * @param <T> the type of the input elements
      * @param mapper a function extracting the property to be summed
@@ -790,6 +800,7 @@ public final class Collectors {
      * preservation of the order in which elements appear in the resulting {@code Map}
      * collector is not required, using {@link #groupingByConcurrent(Function)}
      * may offer better parallel performance.
+     * 根据指定的分组符号分组
      *
      * @param <T> the type of the input elements
      * @param <K> the type of the keys
