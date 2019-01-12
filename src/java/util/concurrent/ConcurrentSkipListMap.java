@@ -722,11 +722,11 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      *       on another call to findPredecessor to notice and return
      *       some earlier predecessor, which it will do. This check is
      *       only strictly needed at beginning of loop, (and the
-     *       b.value check isn't strictly needed at all) but is done
+     *       b.value check i       links, and so will retry anyway.
+     sn't strictly needed at all) but is done
      *       each iteration to help avoid contention with other
      *       threads by callers that will fail to be able to change
-     *       links, and so will retry anyway.
-     *
+     *     *
      * The traversal loops in doPut, doRemove, and findNear all
      * include the same three kinds of checks. And specialized
      * versions appear in findFirst, and findLast and their

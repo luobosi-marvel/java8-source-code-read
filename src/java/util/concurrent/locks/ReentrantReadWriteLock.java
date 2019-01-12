@@ -209,6 +209,11 @@ import java.util.Collection;
  * and 65535 read locks. Attempts to exceed these limits result in
  * {@link Error} throws from locking methods.
  *
+ *
+ * 锁降级：如果当前线程拥有写锁，然后将其释放，最后再获取读锁，这种分段完成的过程不能称之为锁降级。
+ * 锁降级是指把持住（当前拥有的）写锁，再获取到读锁，随后释放（先前拥有的）写锁的过程。
+ * 锁降级要先获取写锁为了保证线程安全，如果释放了写锁此时其他线程进行写操作我在在获取读锁读到的可能不是最新数据。
+ *
  * @since 1.5
  * @author Doug Lea
  */
@@ -264,9 +269,17 @@ public class ReentrantReadWriteLock
         static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1;
         static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;
 
-        /** Returns the number of shared holds represented in count  */
+        /**
+         * Returns the number of shared holds represented in count
+         *
+         * 返回count中表示的共享保留的数量
+         */
         static int sharedCount(int c)    { return c >>> SHARED_SHIFT; }
-        /** Returns the number of exclusive holds represented in count  */
+        /**
+         * Returns the number of exclusive holds represented in count
+         *
+         * 返回count中表示的独占保留的数量
+         */
         static int exclusiveCount(int c) { return c & EXCLUSIVE_MASK; }
 
         /**
@@ -377,6 +390,12 @@ public class ReentrantReadWriteLock
             return free;
         }
 
+        /**
+         * 尝试获取锁
+         *
+         * @param acquires 数量 == 1
+         * @return true/false
+         */
         protected final boolean tryAcquire(int acquires) {
             /*
              * Walkthrough:
@@ -445,6 +464,12 @@ public class ReentrantReadWriteLock
                 "attempt to unlock read lock, not locked by current thread");
         }
 
+        /**
+         * 获取共享锁
+         *
+         * @param unused
+         * @return
+         */
         protected final int tryAcquireShared(int unused) {
             /*
              * Walkthrough:
@@ -463,10 +488,12 @@ public class ReentrantReadWriteLock
              */
             Thread current = Thread.currentThread();
             int c = getState();
+            // 如果是互斥锁且互斥线程并不是当前线程，则获取锁失败
             if (exclusiveCount(c) != 0 &&
                 getExclusiveOwnerThread() != current)
                 return -1;
             int r = sharedCount(c);
+            // 读锁是不是应该阻塞
             if (!readerShouldBlock() &&
                 r < MAX_COUNT &&
                 compareAndSetState(c, c + SHARED_UNIT)) {
