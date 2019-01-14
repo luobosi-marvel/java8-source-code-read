@@ -1009,12 +1009,15 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /** Implementation for put and putIfAbsent */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
         if (key == null || value == null) throw new NullPointerException();
+        // 计算 key 的 hash 值
         int hash = spread(key.hashCode());
         int binCount = 0;
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
+            // 如果 tab 为 null ，则初始化 tab，这里属于懒加载，并不是在 new 的时候创建 tab
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
+            // 没有任何冲突，该位置上面元素为 null，则采用 cas 算法设置该值
             else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
                 if (casTabAt(tab, i, null,
                              new Node<K,V>(hash, key, value, null)))
@@ -1024,6 +1027,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
+                // 通过 hash 值计算制定位置上已经存在元素了，对该元素加锁
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
                         if (fh >= 0) {

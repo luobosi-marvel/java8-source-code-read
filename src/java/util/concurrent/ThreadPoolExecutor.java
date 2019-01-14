@@ -1390,6 +1390,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 return;
             c = ctl.get();
         }
+        // 当线程数小于核心线程数且线程池处于 running 状态且阻塞队列还没有满的情况才会将任务加入阻塞队列
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
             if (! isRunning(recheck) && remove(command))
@@ -1397,6 +1398,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             else if (workerCountOf(recheck) == 0)
                 addWorker(null, false);
         }
+        // 如果阻塞队列添加失败了，则会拒绝任务继续添加操作
         else if (!addWorker(command, false))
             reject(command);
     }
