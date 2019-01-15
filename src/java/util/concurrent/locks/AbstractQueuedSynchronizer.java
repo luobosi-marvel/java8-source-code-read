@@ -1457,6 +1457,15 @@ public abstract class AbstractQueuedSynchronizer
      * #tryAcquireShared}) then it is guaranteed that the current thread
      * is not the first queued thread.  Used only as a heuristic in
      * ReentrantReadWriteLock.
+     *
+     * 如果明显的第一个排队线程（如果是），则返回{@code true}
+     * 存在，正在独占模式中等待。 如果此方法返回{@code true}，当前线程正试图获取
+     * 共享模式（也就是说，此方法是从{@link调用的 #tryAcquireShared}）然后保证当前线程
+     * 不是第一个排队的线程。 仅用作启发式
+     *
+     *
+     * 意思就是：如果对了里面存在一个元素，则判断第一个元素是不是正在尝试获取写锁，
+     * 如果不是，则当前线程判断
      */
     final boolean apparentlyFirstQueuedIsExclusive() {
         Node h, s;

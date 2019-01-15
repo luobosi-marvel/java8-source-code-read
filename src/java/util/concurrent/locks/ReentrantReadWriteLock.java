@@ -493,7 +493,7 @@ public class ReentrantReadWriteLock
                 getExclusiveOwnerThread() != current)
                 return -1;
             int r = sharedCount(c);
-            // 读锁是不是应该阻塞
+            // 尝试获取锁，多个读锁只有一个线程会成功，不成功的进入 fullTryAcquireShared 进行重试
             if (!readerShouldBlock() &&
                 r < MAX_COUNT &&
                 compareAndSetState(c, c + SHARED_UNIT)) {
@@ -518,6 +518,8 @@ public class ReentrantReadWriteLock
         /**
          * Full version of acquire for reads, that handles CAS misses
          * and reentrant reads not dealt with in tryAcquireShared.
+         *
+         * 采用自旋的方式
          */
         final int fullTryAcquireShared(Thread current) {
             /*
@@ -705,6 +707,10 @@ public class ReentrantReadWriteLock
              * only a probabilistic effect since a new reader will not
              * block if there is a waiting writer behind other enabled
              * readers that have not yet drained from the queue.
+             *
+             * 作为避免无限期作家饥饿的启发式，阻止如果线程暂时显得头部队列中的
+             * 如果存在，则是等待的作者。 这是只有概率效应，因为新读者不会阻止，
+             * 如果有其他启用后面的等待作者, 尚未从队列中排出的读者。
              */
             return apparentlyFirstQueuedIsExclusive();
         }
