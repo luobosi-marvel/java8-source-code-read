@@ -68,6 +68,8 @@ import java.util.function.Supplier;
  * thread-local instances are subject to garbage collection (unless other
  * references to these copies exist).
  *
+ * TODO: 使用线性探测法来解决冲突的，不是使用链表来解决冲突的
+ *
  * @author  Josh Bloch and Doug Lea
  * @since   1.2
  */

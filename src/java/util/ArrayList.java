@@ -223,6 +223,13 @@ public class ArrayList<E> extends AbstractList<E>
         }
     }
 
+    /**
+     * 选取一个最小值
+     *
+     * @param elementData   元素数组
+     * @param minCapacity 最小容量 size + 1
+     * @return 最小容量
+     */
     private static int calculateCapacity(Object[] elementData, int minCapacity) {
         if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
             return Math.max(DEFAULT_CAPACITY, minCapacity);
@@ -230,10 +237,18 @@ public class ArrayList<E> extends AbstractList<E>
         return minCapacity;
     }
 
+    /**
+     * 确认内部容量值
+     */
     private void ensureCapacityInternal(int minCapacity) {
         ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));
     }
 
+    /**
+     * 如果 size + 1 也就是元素再加一个超过了 ArrayList 的容量 length，则触发扩容
+     *
+     * @param minCapacity
+     */
     private void ensureExplicitCapacity(int minCapacity) {
         modCount++;
 
@@ -253,6 +268,7 @@ public class ArrayList<E> extends AbstractList<E>
     /**
      * Increases the capacity to ensure that it can hold at least the
      * number of elements specified by the minimum capacity argument.
+     * newCapacity = 50 + 50 * 2
      *
      * @param minCapacity the desired minimum capacity
      */
@@ -462,6 +478,7 @@ public class ArrayList<E> extends AbstractList<E>
      * @return <tt>true</tt> (as specified by {@link Collection#add})
      */
     public boolean add(E e) {
+        // 添加元素的时候判断是否要扩容
         ensureCapacityInternal(size + 1);  // Increments modCount!!
         elementData[size++] = e;
         return true;

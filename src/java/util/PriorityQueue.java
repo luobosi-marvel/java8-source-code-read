@@ -286,6 +286,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     /**
      * Increases the capacity of the array.
+     * TODO: 优先队列扩容
+     * 如果旧容量小于 64，则扩容 50% + 2 ，即 oldCapacity = 50 newCapacity = 50 + 50 + 2
+     * 否则 newCapacity = 50 + 50 * 2
      *
      * @param minCapacity the desired minimum capacity
      */

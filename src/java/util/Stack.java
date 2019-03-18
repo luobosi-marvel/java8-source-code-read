@@ -71,7 +71,7 @@ public class Stack<E> extends Vector<E> {
 
     /**
      * Removes the object at the top of this stack and returns that
-     * object as the value of this function.
+     * object as the value of this function.ø
      *
      * @return The object at the top of this stack (the last item
      * of the <tt>Vector</tt> object).

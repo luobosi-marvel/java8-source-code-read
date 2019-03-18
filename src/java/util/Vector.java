@@ -76,8 +76,9 @@ import java.util.function.UnaryOperator;
  * implementations, {@code Vector} is synchronized.  If a thread-safe
  * implementation is not needed, it is recommended to use {@link
  * ArrayList} in place of {@code Vector}.
- *
+ * <p>
  * Vector 表示一种向量，是线程安全的线性表，原理就是在每个方法面前加一个 Synchronized 关键字
+ *
  * @author Lee Boynton
  * @author Jonathan Payne
  * @see Collection
