@@ -1762,6 +1762,12 @@ class Thread implements Runnable {
      * the invocation to the {@linkplain #getDefaultUncaughtExceptionHandler
      * default uncaught exception handler}.
      *
+     * todo: 当一个线程因未捕获异常而即将终止时，JVM 将使用 Thread.getUncaughtExceptionHandler()
+     * 获取已经设置的 UncaughtExceptionHandler 实例并通过调用其 uncaughtException 方法而传递相关
+     * 的异常信息。如果一个线程没有明确设置其 UncaughtExceptionHandler，
+     * 则将其 ThreadGroup 对象作为他的 Handler，如果 ThreadGroup 对象对异常没有什么特殊的要求，
+     * 则 ThreadGroup 会将调用转发给默认的未捕获异常处理器
+     *
      * @see #setDefaultUncaughtExceptionHandler
      * @see #setUncaughtExceptionHandler
      * @see ThreadGroup#uncaughtException

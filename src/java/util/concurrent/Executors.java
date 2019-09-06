@@ -67,6 +67,27 @@ import sun.security.util.SecurityConstants;
  *
  * @since 1.5
  * @author Doug Lea
+ *
+ * 了解 JDK Executors 线程池么？
+ * 知道 JDK 提供了哪些默认的实现吗？
+ * 看过 阿里巴巴 Java 开发手册吗？知道为啥不允许使用默认的实现吗？
+ *  - 线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，规避资源耗尽的风险
+ *      - newFixedThreadPool 和 newSingleThreadExecutor
+ *        主要问题是堆积的请求处理队列可能会耗费灰常大的内存，甚至 OOM。
+ *      - newCacheThreadPool 和 newScheduledThreadPool
+ *        主要问题是线程数最大数是 Integer.MAX_LAVUE，可能会创建数量非常多的线程，甚至 OOM
+ *
+ *
+ * 你们没有用默认的吧？那来介绍一下你们自定义线程池的几个常用参数呗？
+ * 你们这几个参数的值是怎么得来的呀？算出来的？怎么算出来的？
+ * 线程池里面的任务是 IO 密集型还是计算密集型的呢？
+ * 好，现在我们有一个自定义线程池了，来说一下你这个线程池的工作流程呗？
+ * 那你这个线程池满了怎么办呀？拒绝？咋拒绝？有哪些拒绝策略？
+ *  - 注意：涛哥说：这里涉及到决策，你得评估你得任务重要性，是否可以丢弃，要考虑这种问题一年出现一次还是怎么才能出现
+ *  我觉得每次故障都有可能是致命的，有风险一定要考虑最优的方案。拒绝策略也一定慎重考虑
+ *
+ * todo：一个线程池中的线程异常了，那么线程池会怎么处理这个线程？
+ *
  */
 public class Executors {
 

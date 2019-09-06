@@ -708,6 +708,7 @@ public class ReentrantReadWriteLock
              * block if there is a waiting writer behind other enabled
              * readers that have not yet drained from the queue.
              *
+             * todo：避免饿死
              * 作为避免无限期作家饥饿的启发式，阻止如果线程暂时显得头部队列中的
              * 如果存在，则是等待的作者。 这是只有概率效应，因为新读者不会阻止，
              * 如果有其他启用后面的等待作者, 尚未从队列中排出的读者。
