@@ -214,6 +214,25 @@ import java.util.Collection;
  * 锁降级是指把持住（当前拥有的）写锁，再获取到读锁，随后释放（先前拥有的）写锁的过程。
  * 锁降级要先获取写锁为了保证线程安全，如果释放了写锁此时其他线程进行写操作我在在获取读锁读到的可能不是最新数据。
  *
+ * ReentrantReadWriteLock: 皮一下很开心
+ * 最后发现B和C对应的服务端读写线程均发生"卡死"其实是ReentrantReadWriteLock在默认的unfair policy下的一个合法行为.
+ * 这里我们先解释一下, 什么是ReentrantReadWriteLock的fair以及unfair policy:
+ *
+ * fair policy: 在这种模式下, ReentrantReadWriteLock会尽量按照锁请求的时间顺序来决定锁竞争结果.
+ * 这样的用意是在锁竞争激烈的时候, 保证写锁的竞争线程总有机会拿到锁而不是永远被读锁的竞争线程排斥.
+ *
+ * unfair policy: 在这种模式下, 由一系列的启发函数来决定锁竞争的结果, 而并不是依赖锁请求的顺序.
+ * 请注意, 这是ReentrantReadWriteLock默认的模式.
+ * 在我们的情况下, ReentrantReadWriteLock已经是使用unfair policy创建了, 但却依然发生请求读锁的客户端C卡死, 这又是为什么呢?
+ *
+ * todo：避免假死
+ * 原来在unfair policy的启发函数中有一条规定, 当lock已经被读锁占用, 且锁竞争队列里排第一的是写锁请求的时候,
+ * 其他的读锁请求并不能以为是读锁就"插队"抢锁. 这个用意和fair policy一样, 为了防止写锁请求一直不能被轮巡到.
+ * 换言之, 所谓的unfair也并非完全效率第一, 而是一定程度上还是在兼顾fairness
+ *
+ * 回到我们的场景: 客户端A成功的使用了读锁霸占住了"/foo/"对应的ReentrantReadWriteLock后并"超长待机"一直霸占,
+ * 请求写锁的客户端B排到了队列的头一名, 在unfair policy的作用下, 客户端C无法插队也一直被B的写锁请求抑制.
+ * 最后造成的假象就是, 没有线程可以继续工作, 形同"服务器卡死". 但实际上当A在工作了10分钟完成之后, B和C也分别顺利结束.
  * @since 1.5
  * @author Doug Lea
  */
